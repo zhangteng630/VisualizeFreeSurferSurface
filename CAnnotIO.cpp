@@ -8,6 +8,7 @@
  * 
  * Created on January 12, 2016, 00:44 AM
  * Modified on July 25, 2016, 2:31 PM
+ * Modified on July 28, 2017, 7:02 PM
  */
 
 #include <map>
@@ -55,7 +56,7 @@ int CAnnotIO::Read(std::string filename)
 		return 1;
 	}
 	//read the tag "TAG_OLD_COLORTABLE" which indicates a color table comes next
-	ReadBigEndian<int32_t>(ifs);
+	int32_t tag = ReadBigEndian<int32_t>(ifs);
 	//read number of entries (1. also called label number); (2. also a feature to differentiate version 1 and 2)
 	int32_t numEntries = ReadBigEndian<int32_t>(ifs);
 	m_colortable.clear();
@@ -87,6 +88,7 @@ int CAnnotIO::Read(std::string filename)
 			//calculate label
 			item.label = item.r + item.g * 256 + item.b * 256 * 256 + item.t * 256 * 256 * 256;
 			m_colortable.insert(std::pair< int32_t, ColorTableItem >(item.label, item));
+			//m_colortable.insert(std::pair< int32_t, ColorTableItem >(i, item));
 		}
 	}
 	//the second version
@@ -139,6 +141,7 @@ int CAnnotIO::Read(std::string filename)
 			//calculate label
 			item.label = item.r + item.g * 256 + item.b * 256 * 256 + item.t * 256 * 256 * 256;
 			m_colortable.insert(std::pair< int32_t, ColorTableItem >(item.label, item));
+			//m_colortable.insert(std::pair< int32_t, ColorTableItem >(i, item));
 		}
 	}
 	return 0;
@@ -161,14 +164,15 @@ int CAnnotIO::Write(std::string filename)
 		WriteBigEndian<int32_t>(ofs, m_labels[i]);
 	}
 	//write tag indicating a color table comes next
-	WriteBigEndian<int32_t>(ofs, 0);
+	WriteBigEndian<int32_t>(ofs, 1);
 	//version 2
 	WriteBigEndian<int32_t>(ofs, -2);
 	//write number of entries
 	WriteBigEndian<int32_t>(ofs, m_colortable.size());
 	//write file name
 	WriteBigEndian<int32_t>(ofs, filename.size());
-	WriteBigEndian<char>(ofs, *(filename.c_str()));
+	//WriteBigEndian<char>(ofs, *(filename.c_str()));
+	ofs.write(filename.c_str(), filename.size());
 	//write number to be read/write
 	WriteBigEndian<int32_t>(ofs, m_colortable.size());
 	int32_t id = 0;
@@ -180,7 +184,8 @@ int CAnnotIO::Write(std::string filename)
 		ColorTableItem item = (*iter).second;
 		//structure name
 		WriteBigEndian<int32_t>(ofs, item.name.size());
-		WriteBigEndian<char>(ofs, *(item.name.c_str()));
+		//WriteBigEndian<char>(ofs, *(item.name.c_str()));
+		ofs.write(item.name.c_str(), item.name.size());
 		//write red
 		WriteBigEndian<int32_t>(ofs, item.r);
 		//write green
@@ -190,7 +195,7 @@ int CAnnotIO::Write(std::string filename)
 		//write transparency
 		WriteBigEndian<int32_t>(ofs, item.t);
 		//write label
-		WriteBigEndian<int32_t>(ofs, item.label);
+		//WriteBigEndian<int32_t>(ofs, item.label);
 	}
 	return 0;
 }
