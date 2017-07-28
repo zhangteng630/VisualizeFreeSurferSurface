@@ -8,6 +8,7 @@
  * 
  * Created on January 12, 2016, 00:44 AM
  * Modified on July 25, 2016, 2:31 PM
+ * Modified on July 28, 2017, 7:02 PM
  */
 
 #ifndef __CAnnotIO_h__
@@ -63,6 +64,20 @@ public:
 	//get access to colortable
 	std::map< int32_t, ColorTableItem >& GetColorTable(void){
 		return m_colortable;
+	}
+	
+	// set color table
+	void SetColorTable(std::map< int32_t, ColorTableItem > colortable) {
+		this->m_colortable.swap(colortable);
+	}
+	// set vertices
+	void SetVertices(std::vector< int32_t > vertices) {
+		this->m_vertexCount = vertices.size();
+		this->m_vertices.swap(vertices);
+	}
+	// set labels
+	void SetLabels(std::vector< int32_t > labels) {
+		this->m_labels.swap(labels);
 	}
 
 public:
